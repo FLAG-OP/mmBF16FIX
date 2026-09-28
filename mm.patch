@@ -1,0 +1,16 @@
+diff --git a/src/flag_gems/runtime/backend/_kunlunxin/ops/mm.py b/src/flag_gems/runtime/backend/_kunlunxin/ops/mm.py
+index 47dcd43fabac5387b78da096294cffc2e8726acd..77387d17412578f99cabbafdc52b735c60d9d69a 100644
+--- a/src/flag_gems/runtime/backend/_kunlunxin/ops/mm.py
++++ b/src/flag_gems/runtime/backend/_kunlunxin/ops/mm.py
+@@ -12,6 +12,11 @@ from flag_gems.utils import triton_lang_extension as tle
+ 
+ logger = logging.getLogger("flag_gems").getChild(__name__.lstrip("."))
+ 
++# P800/XPU3 defaults BF16 matmul lowering to an FP32-equivalent SDNN path.
++# XMLIR_MATMUL_FAST_MODE=1 selects the 16-bit SDNN path while preserving BF16
++# range/semantics.  Respect an explicit user override.
++os.environ.setdefault("XMLIR_MATMUL_FAST_MODE", "1")
++
+ 
+ def heur_split_k(args):
+     return 1

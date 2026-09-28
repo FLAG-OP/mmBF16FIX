@@ -1,0 +1,134 @@
+[
+  {
+    "mode": "gems_direct",
+    "dtype": "float16",
+    "m": 512,
+    "n": 512,
+    "k": 512,
+    "ms": 0.04199817776679993,
+    "tflops": 6.391597690036007,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float16",
+    "m": 1024,
+    "n": 1024,
+    "k": 1024,
+    "ms": 0.04363022744655609,
+    "tflops": 49.220088312180216,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float16",
+    "m": 4096,
+    "n": 4096,
+    "k": 4096,
+    "ms": 0.679315160959959,
+    "tflops": 202.31986767052456,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float16",
+    "m": 4096,
+    "n": 8192,
+    "k": 8192,
+    "ms": 2.660138625651598,
+    "tflops": 206.66434770982582,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "bfloat16",
+    "m": 512,
+    "n": 512,
+    "k": 512,
+    "ms": 0.07221270352602005,
+    "tflops": 3.7172885502517703,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "bfloat16",
+    "m": 1024,
+    "n": 1024,
+    "k": 1024,
+    "ms": 0.07152268663048744,
+    "tflops": 30.025209470873094,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "bfloat16",
+    "m": 4096,
+    "n": 4096,
+    "k": 4096,
+    "ms": 0.8534258231520653,
+    "tflops": 161.04381862313397,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "bfloat16",
+    "m": 4096,
+    "n": 8192,
+    "k": 8192,
+    "ms": 3.066756948828697,
+    "tflops": 179.26292270992366,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float32",
+    "m": 512,
+    "n": 512,
+    "k": 512,
+    "ms": 0.036733318120241165,
+    "tflops": 7.307683316854623,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float32",
+    "m": 1024,
+    "n": 1024,
+    "k": 1024,
+    "ms": 0.05040401592850685,
+    "tflops": 42.605407693029754,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float32",
+    "m": 4096,
+    "n": 4096,
+    "k": 4096,
+    "ms": 1.1822155676782131,
+    "tflops": 116.25540826020442,
+    "warmup": 5,
+    "iters": 10
+  },
+  {
+    "mode": "gems_direct",
+    "dtype": "float32",
+    "m": 4096,
+    "n": 8192,
+    "k": 8192,
+    "ms": 4.513030685484409,
+    "tflops": 121.81521735631442,
+    "warmup": 5,
+    "iters": 10
+  }
+]

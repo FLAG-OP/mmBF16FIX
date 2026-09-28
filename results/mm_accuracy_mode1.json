@@ -1,0 +1,197 @@
+{
+  "source": "/workspace/MM_BF16_Fix/src/mm.py",
+  "xmlir_matmul_fast_mode": "1",
+  "records": [
+    {
+      "layout": "bf16_range",
+      "value": 1.0,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 3.14159265,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 65504.0,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 65520.0,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 100000.0,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 10000000000.0,
+      "status": "PASS",
+      "max_abs_err": 0.0,
+      "max_rel_err": 0.0
+    },
+    {
+      "layout": "bf16_range",
+      "value": 1e+20,
+      "status": "PASS",
+      "max_abs_err": 3.6893488147419103e+19,
+      "max_rel_err": 0.005780346691608429
+    },
+    {
+      "layout": "bf16_range",
+      "value": 1e-08,
+      "status": "PASS",
+      "max_abs_err": 3.725290298461914e-09,
+      "max_rel_err": 0.003725290298461914
+    },
+    {
+      "layout": "contiguous",
+      "m": 8,
+      "n": 16,
+      "k": 32,
+      "status": "PASS",
+      "max_abs_err": 0.0625,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "contiguous",
+      "m": 33,
+      "n": 47,
+      "k": 63,
+      "status": "PASS",
+      "max_abs_err": 0.125,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "contiguous",
+      "m": 128,
+      "n": 256,
+      "k": 512,
+      "status": "PASS",
+      "max_abs_err": 0.5,
+      "max_rel_err": 0.01075268816202879
+    },
+    {
+      "layout": "contiguous",
+      "m": 513,
+      "n": 257,
+      "k": 129,
+      "status": "PASS",
+      "max_abs_err": 0.25,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "contiguous",
+      "m": 1024,
+      "n": 1024,
+      "k": 1024,
+      "status": "PASS",
+      "max_abs_err": 1.0,
+      "max_rel_err": 0.01886792480945587
+    },
+    {
+      "layout": "transposed_a",
+      "m": 8,
+      "n": 16,
+      "k": 32,
+      "status": "PASS",
+      "max_abs_err": 0.0625,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_a",
+      "m": 33,
+      "n": 47,
+      "k": 63,
+      "status": "PASS",
+      "max_abs_err": 0.125,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_a",
+      "m": 128,
+      "n": 256,
+      "k": 512,
+      "status": "PASS",
+      "max_abs_err": 0.5,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_a",
+      "m": 513,
+      "n": 257,
+      "k": 129,
+      "status": "PASS",
+      "max_abs_err": 0.25,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_a",
+      "m": 1024,
+      "n": 1024,
+      "k": 1024,
+      "status": "PASS",
+      "max_abs_err": 1.0,
+      "max_rel_err": 0.0656934306025505
+    },
+    {
+      "layout": "transposed_b",
+      "m": 8,
+      "n": 16,
+      "k": 32,
+      "status": "PASS",
+      "max_abs_err": 0.125,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_b",
+      "m": 33,
+      "n": 47,
+      "k": 63,
+      "status": "PASS",
+      "max_abs_err": 0.125,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_b",
+      "m": 128,
+      "n": 256,
+      "k": 512,
+      "status": "PASS",
+      "max_abs_err": 0.5,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_b",
+      "m": 513,
+      "n": 257,
+      "k": 129,
+      "status": "PASS",
+      "max_abs_err": 0.25,
+      "max_rel_err": 0.007751937955617905
+    },
+    {
+      "layout": "transposed_b",
+      "m": 1024,
+      "n": 1024,
+      "k": 1024,
+      "status": "PASS",
+      "max_abs_err": 1.0,
+      "max_rel_err": 0.01923076994717121
+    }
+  ]
+}
