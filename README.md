@@ -119,6 +119,23 @@ kernel-level: 23 passed
 FlagGems official test_accuracy_mm: 18 passed
 ```
 
+## 后续优化方向
+
+剩余 BF16 / FP16 差距建议优先处理：
+
+1. 做 BF16 专属 tile sweep，并把常见 shape / bucket 的最优配置离线固化，避免
+   用户承担首次 runtime autotune 等待；
+2. 建立 small / medium / large / skinny GEMM 性能矩阵，增加 BF16 相对 FP16、
+   FP32 的回归阈值；
+3. 对比 BF16 与 FP16 的 TTXIR、SDNN 指令形态、pipeline 与 occupancy，确认
+   剩余差距是否来自 layout、寄存器压力或调度；
+4. 优化 transpose、非对齐、尾块、`mm_out` 与小 M skinny GEMM 的布局和访存路径；
+5. 补充真实模型 E2E profile，验证 large GEMM 收益并能发现小 shape 回归；
+6. 工程化 offline tuned config cache，并与 XMLIR / XPU3 上游沟通 BF16 默认
+   lowering 语义与回归测试。
+
+详细路线见 [reports/PERFORMANCE_ACCURACY.md](reports/PERFORMANCE_ACCURACY.md#7-后续优化方向)。
+
 ## 已知边界
 
 - 如果外部显式设置 `XMLIR_MATMUL_FAST_MODE=0`，patch 会尊重该选择；

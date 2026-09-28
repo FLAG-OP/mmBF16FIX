@@ -70,4 +70,22 @@ os.environ.setdefault("XMLIR_MATMUL_FAST_MODE", "1")
 - `test/gap_checks.py`：BF16 range 超出 FP16 的值、边界行为通过；
 - FlagGems 官方 `test_accuracy_mm`：18 passed。
 
+## 后续优化方向
+
+1. **P0：BF16 专属 tile 配置**：离线 sweep `BLOCK_M/BLOCK_N/BLOCK_K`、warps、
+   stages 与 grid 策略，按 large / skinny / non-aligned shape bucket 固化 config
+   cache；目标是保留 `KLX_USE_AUTOTUNE=0` 的即时启动行为，同时接近手动 autotune
+   的约 281 TFLOPS。
+2. **P0：性能回归门槛**：覆盖 small / medium / large / skinny GEMM 与 transpose
+   布局，建议 large compute-bound 场景至少检查 `BF16/FP16 >= 0.75`、
+   `BF16/FP32 >= 1.3`。
+3. **P1：lowering 对比**：检查 fast mode 后 BF16 与 FP16 的 TTXIR、SDNN 指令、
+   local-memory layout、pipeline 和 occupancy，定位剩余 10%~15% 差距。
+4. **P1：布局与访存**：优化 transpose、尾块、C 写回向量化、小 M skinny GEMM
+   与 `mm_out` 路径。
+5. **P1：E2E 验证**：用真实 BF16 模型收集端到端吞吐、profiler 中 `mm` 占比和
+   shape 分布，确认大 GEMM 收益且小 shape 不回归。
+6. **P2：工程化与上游协同**：建设 tuned config cache / benchmark 脚本，并与
+   XMLIR / XPU3 上游明确 BF16 默认 lowering 语义和回归测试。
+
 完整数据与 lowered IR 证据见 [reports/PERFORMANCE_ACCURACY.md](reports/PERFORMANCE_ACCURACY.md)。

@@ -245,7 +245,149 @@ BLOCK_M=480, BLOCK_N=512, BLOCK_K=512, num_warps=5
 
 但该调优首次运行耗时明显，且最佳 tile 随 shape 变化，因此不建议作为默认强制行为。
 
-## 7. 已尝试但不采用的方案
+## 7. 后续优化方向
+
+当前修复已经把 BF16 从 FP32 等价路径恢复到 16-bit SDNN fast path，代表 shape 上
+BF16/FP16 达到约 90%。这不是正确性问题的延续，而是剩余 10%~15% 的性能空间。
+后续优化建议按以下优先级推进。
+
+### P0：BF16 专属 tile 配置与 shape 分桶
+
+代表 shape 的手动 autotune 已经证明默认 config 不是 BF16 的最优点：
+
+```text
+默认 config BF16:  187.60 TFLOPS
+autotune BF16:     281.21 TFLOPS
+autotune FP16:     333.13 TFLOPS
+```
+
+下一步不应简单强制开启 runtime autotune，而是离线完成 BF16 专属 sweep，并把结果
+固化成 config 表：
+
+1. Sweep 维度：
+   - `BLOCK_M / BLOCK_N / BLOCK_K`；
+   - `num_warps`；
+   - `num_stages` / software pipeline 相关参数；
+   - grid 分块与 CTA 复用策略。
+2. 按矩阵规模分桶，而不是只记录 exact shape：
+   - large-square / large-rectangular compute-bound GEMM；
+   - `M` 较小的 decode / inference linear；
+   - `N` 或 `K` 很小的 skinny GEMM；
+   - 128 对齐、非 128 对齐、尾块比例较高的 shape。
+3. 为常见 LLM、embedding / projection、MLP shape 建立 tuned config cache。
+4. Cache 查找优先 exact match，再做 bucket fallback；避免把数十秒的首次调优
+   暴露给普通用户。
+
+验收指标：在保留 `KLX_USE_AUTOTUNE=0` 交互路径的前提下，让高频 shape 不需要
+在线调优也能接近 offline autotune 结果。
+
+### P0：建立 BF16 / FP16 性能基线与回归门槛
+
+补充一个固定 benchmark 矩阵，覆盖：
+
+```text
+small:   M=128/256,  N=512/1024,   K=512/1024
+medium:  M=512/1024, N=2048/4096,  K=2048/4096
+large:   M=2048/4096,N=4096/8192,  K=4096/8192
+skinny:  M=1/8/32,   N=1024~8192,  K=1024~8192
+```
+
+同时记录：
+
+- contiguous、A transpose、B transpose；
+- `mm` 与 `mm_out`；
+- public dispatch 与 direct kernel 的差距；
+- XPU 频率、占用进程和迭代稳定性。
+
+建议报告两个门槛：
+
+```text
+BF16 / FP16 >= 0.75  # large compute-bound GEMM
+BF16 / FP32  >= 1.3  # 防止退回 FP32 等价路径
+```
+
+阈值可以根据后续更多 shape 数据调整，关键是每次 FlagGems / XMLIR 更新后自动发现
+lowering 或 tile config 回归。
+
+### P1：检查剩余 lowering 差异
+
+BF16 与 FP16 标称峰值通常相同，但实测低 5%~15% 并不罕见。为了确认 P800 剩余
+差距来自软件调度而不是硬件路径，应对比 fast mode 下 BF16 与 FP16 的：
+
+1. TTIR / TTXIR：
+   - SDNN MMA 输入是否保持 16-bit；
+   - 是否仍存在 BF16 到 FP32 的额外展开；
+   - BF16 是否多出 layout cast / swizzle / local-memory 转换。
+2. MMA 指令形态：
+   - instruction tile shape；
+   - accumulator dtype 与寄存器压力；
+   - local memory bank / vector width。
+3. Pipeline 行为：
+   - DMA 与 MMA overlap；
+   - stages 数；
+   - CTA occupancy；
+   - tail wave 与 grid 切分。
+
+输出应是可比较的 IR/profiling 证据，而不是只比较最终 TFLOPS。
+
+### P1：布局与访存优化
+
+当前 correctness 用例已经覆盖 transpose，但 transpose、非 128 对齐和尾块仍是常见
+性能风险。可以继续尝试：
+
+- A/B local-memory layout 与 swizzle 参数；
+- C store 的 vectorization 与 alignment；
+- transpose 场景下选择不同的 tile 长；
+- 减少 `mm_out` 输出路径上的额外检查或转换；
+- 对小 M 场景采用更适合 skinny GEMM 的并行方式。
+
+这些优化必须逐项对比 native `torch.mm` 和 FlagGems fixed path，避免只在一个
+代表 shape 上过拟合。
+
+### P1：模型级 E2E 验证
+
+Kernel-level 吞吐不能完全代表实际收益。需要选择 BF16 推理与训练场景，分别在
+FlagGems 开启 / 关闭时收集：
+
+- end-to-end latency / throughput；
+- `torch.profiler` 中 `mm` 的调用次数与总耗时；
+- `mm` shape 分布；
+- host launch 与 device kernel 占比；
+- 修复前、修复后、tuned config 后三组结果。
+
+重点不是证明所有模型都有同等幅度加速，而是确认：
+
+1. 已修复的 large GEMM 场景能转化为端到端收益；
+2. 小 shape / skinny GEMM 没有因额外配置查找或 kernel 选择变慢；
+3. 精度指标与 native BF16 对齐。
+
+### P2：Autotune 工程化
+
+如果要把 offline sweep 变成可持续能力，建议增加：
+
+- JSON / SQLite tuned config cache；
+- dtype / shape bucket 元数据；
+- 编译结果与缓存版本号；
+- 单 shape benchmark 与 sweep 脚本；
+- cache miss 时的保守 fallback；
+- 清晰记录调优时长，避免隐藏冷启动。
+
+默认策略仍应尊重部署环境的 `KLX_USE_AUTOTUNE` 设置，不把在线 autotune 作为
+正确性修复的一部分。
+
+### P2：与 XMLIR / XPU3 上游协同
+
+本修复改变了默认 lowering mode。后续更适合上游长期维护的方向包括：
+
+- 明确 `XMLIR_MATMUL_FAST_MODE` 在不同硬件代际和 dtype 下的语义；
+- 将 BF16 16-bit SDNN fast path 作为 BF16 `tl.dot` 的默认合法 lowering；
+- 提供 compiler flag / IR metadata 说明为什么选择 FP32 等价路径；
+- 在 XMLIR 或 backend 测试中加入 BF16 lowering 断言；
+- 与硬件文档对齐 BF16 / FP16 的实际峰值与限制。
+
+这样可以避免未来 XMLIR 升级后同一问题通过环境变量静默回归。
+
+## 8. 已尝试但不采用的方案
 
 ### BF16 输入先转 FP16，再走 FP16 MMA
 
@@ -267,7 +409,7 @@ Autotune 在代表 shape 上可以把 BF16 提升到约 281 TFLOPS，但首次�
 数十秒，且当前部署显式选择 `KLX_USE_AUTOTUNE=0`。修复尊重该部署配置，只将其
 作为可选手动策略。
 
-## 8. 结论
+## 9. 结论
 
 问题不是 FlagGems `mm_kernel` 的 stride 或 shape 处理错误，而是 XPU3 对 BF16
 `tl.dot` 的默认 lowering 走了 FP32 等价 SDNN 路径。
